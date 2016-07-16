@@ -6,6 +6,7 @@
 package van.tian.wen.circleprogressbutton;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -16,7 +17,6 @@ import android.os.Message;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-
 
 
 /**
@@ -40,6 +40,31 @@ public class CircleProgressButton extends View {
     private Paint mPaint;
     private int mWidth, mHeight;
     private float sweepAngle;
+
+    /**
+     * 圆的颜色
+     */
+    private int mCircleColor;
+
+    /**
+     * 进度条的颜色
+     */
+    private int mProgressColor;
+
+    /**
+     * 进度条的宽度
+     */
+    private float mProgressWidth;
+
+    /**
+     * 文字的颜色
+     */
+    private int mTextColor;
+
+    /**
+     * 文字的大小
+     */
+    private float mTextSize;
 
     /**
      * 结束标志位
@@ -88,6 +113,17 @@ public class CircleProgressButton extends View {
     public CircleProgressButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.mContext = context;
+
+
+        TypedArray typedArray = mContext.obtainStyledAttributes(attrs, R.styleable.CircleProgressButton);
+        mCircleColor = typedArray.getColor(R.styleable.CircleProgressButton_circleColor, Color.WHITE);
+        mProgressColor = typedArray.getColor(R.styleable.CircleProgressButton_progressColor, Color.BLUE);
+        mProgressWidth = typedArray.getDimension(R.styleable.CircleProgressButton_progressWidth, CommonUtils.dip2px(mContext, 1f));
+        mTextColor = typedArray.getColor(R.styleable.CircleProgressButton_textColor, Color.BLACK);
+        mTextSize = typedArray.getDimension(R.styleable.CircleProgressButton_textSize, CommonUtils.sp2px(mContext, 1f));
+
+        typedArray.recycle();
+
         init();
     }
 
@@ -125,7 +161,7 @@ public class CircleProgressButton extends View {
                     } else {
                         sweepAngle += everyIntervalAngle;
                         invalidate();
-                        sendEmptyMessageDelayed(0, TIME_INTERVAL);
+                        sendEmptyMessageDelayed(PROGRESS_PLUS, TIME_INTERVAL);
                     }
                     break;
                 case 1:
@@ -133,7 +169,7 @@ public class CircleProgressButton extends View {
                     if (!isEndOk) {
                         sweepAngle -= everyIntervalAngle;
                         invalidate();
-                        sendEmptyMessageDelayed(1, TIME_INTERVAL);
+                        sendEmptyMessageDelayed(PROGRESS_REDUCE, TIME_INTERVAL);
                     } else {
                         if (mCircleProcessListener != null) {
                             mCircleProcessListener.onCancelOk();
@@ -157,10 +193,10 @@ public class CircleProgressButton extends View {
 
                 if (!isEndOk) {
                     mCircleProcessListener.onReStart();
-                    mLongPressedHandler.removeMessages(1);
+                    mLongPressedHandler.removeMessages(PROGRESS_REDUCE);
                 }
 
-                mLongPressedHandler.sendEmptyMessage(0);
+                mLongPressedHandler.sendEmptyMessage(PROGRESS_PLUS);
 
                 break;
             case MotionEvent.ACTION_CANCEL:
@@ -168,10 +204,10 @@ public class CircleProgressButton extends View {
 
                 if (!isEnd) {
                     mCircleProcessListener.onCancel();
-                    mLongPressedHandler.sendEmptyMessage(1);
+                    mLongPressedHandler.sendEmptyMessage(PROGRESS_REDUCE);
                 }
 
-                mLongPressedHandler.removeMessages(0);
+                mLongPressedHandler.removeMessages(PROGRESS_PLUS);
 
                 break;
         }
@@ -197,25 +233,25 @@ public class CircleProgressButton extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // 画一个圆
         canvas.translate(mWidth / 2, mHeight / 2);
 
+        //画一个圆
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.WHITE);
+        mPaint.setColor(mCircleColor);
         canvas.drawCircle(0, 0, mRadius, mPaint);
 
         //画进度条
-        mPaint.setColor(Color.parseColor("#00B2A5"));
+        mPaint.setColor(mProgressColor);
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(25);
+        mPaint.setStrokeWidth(mProgressWidth);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         RectF rectF = new RectF(-mRadius, -mRadius, mRadius, mRadius);
         canvas.drawArc(rectF, -90, sweepAngle, false, mPaint);
 
         //画文字
-        mPaint.setColor(Color.parseColor("#FFD7000F"));
+        mPaint.setColor(mTextColor);
         mPaint.setTextAlign(Paint.Align.CENTER);
-        mPaint.setTextSize(CommonUtils.sp2px(mContext, 16f));
+        mPaint.setTextSize(mTextSize);
         mPaint.setStrokeWidth(1f);
         mPaint.setStyle(Paint.Style.FILL);
         Rect bounds = new Rect();
