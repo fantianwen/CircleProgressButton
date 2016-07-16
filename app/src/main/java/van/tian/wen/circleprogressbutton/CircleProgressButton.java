@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 fantianwen <twfan_09@hotmail.com>
- * <p>
+ * <p/>
  * also you can see {@link https://github.com/fantianwen/CircleProgressButton}
  */
 package van.tian.wen.circleprogressbutton;
@@ -192,7 +192,9 @@ public class CircleProgressButton extends View {
             case MotionEvent.ACTION_DOWN:
 
                 if (!isEndOk) {
-                    mCircleProcessListener.onReStart();
+                    if (mCircleProcessListener != null) {
+                        mCircleProcessListener.onReStart();
+                    }
                     mLongPressedHandler.removeMessages(PROGRESS_REDUCE);
                 }
 
@@ -203,7 +205,9 @@ public class CircleProgressButton extends View {
             case MotionEvent.ACTION_UP:
 
                 if (!isEnd) {
-                    mCircleProcessListener.onCancel();
+                    if (mCircleProcessListener != null) {
+                        mCircleProcessListener.onCancel();
+                    }
                     mLongPressedHandler.sendEmptyMessage(PROGRESS_REDUCE);
                 }
 

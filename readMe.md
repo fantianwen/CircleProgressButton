@@ -1,6 +1,6 @@
 ## CircleProgressButton
 
-![circleProgressButton](https://raw.githubusercontent.com/fantianwen/MarkDown/master/commonView/circleProgressButton.gif)
+![progressButton](https://raw.githubusercontent.com/fantianwen/MarkDown/master/commonView/progressButton.gif)
 
 
 ## how to use

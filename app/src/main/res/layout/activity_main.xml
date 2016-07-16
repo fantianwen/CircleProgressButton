@@ -11,11 +11,12 @@
     tools:context="van.tian.wen.circleprogressbutton.MainActivity">
 
     <van.tian.wen.circleprogressbutton.CircleProgressButton
+        android:id="@+id/circleProgressButton"
         android:layout_width="72dp"
         android:layout_height="72dp"
         van:circleColor="@android:color/holo_blue_light"
-        van:progressColor="@android:color/holo_red_dark"
-        van:progressWidth="2dp"
+        van:progressColor="@android:color/holo_orange_dark"
+        van:progressWidth="5dp"
         van:textColor="@android:color/black"
         van:textSize="16sp" />
 
