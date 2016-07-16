@@ -7,14 +7,26 @@
 
 ```
  <van.tian.wen.circleprogressbutton.CircleProgressButton
-        android:layout_width="72dp"
-        android:layout_height="72dp" />
+         android:layout_width="72dp"
+         android:layout_height="72dp"
+         van:circleColor="@android:color/holo_blue_light"
+         van:progressColor="@android:color/holo_red_dark"
+         van:progressWidth="2dp"
+         van:textColor="@android:color/black"
+         van:textSize="16sp" />
+```
+### setText
+
+```
+circleProgressButton.setText("文字");
 ```
 
-and in java code ,you can get progressStatus by implement `CircleProgressButton.CircleProcessListener`
+### getProgressStatus
+
+you can get progressStatus by implement `CircleProgressButton.CircleProcessListener`
 
 ```
-outerCircle.setCircleProcessListener(new CircleProgressButton.CircleProcessListener() {
+circleProgressButton.setCircleProcessListener(new CircleProgressButton.CircleProcessListener() {
             @Override
             public void onFinished() {
                 //长按结束了
