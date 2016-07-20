@@ -11,7 +11,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         CircleProgressButton circleProgressButton = (CircleProgressButton) findViewById(R.id.circleProgressButton);
 
         circleProgressButton.setText("文字");

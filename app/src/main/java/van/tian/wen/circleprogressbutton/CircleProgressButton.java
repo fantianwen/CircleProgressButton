@@ -5,6 +5,7 @@
  */
 package van.tian.wen.circleprogressbutton;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -17,6 +18,7 @@ import android.os.Message;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.ScaleAnimation;
 
 
 /**
@@ -33,6 +35,16 @@ public class CircleProgressButton extends View {
      * 进度正在减少
      */
     private final static int PROGRESS_REDUCE = 1;
+
+    /**
+     * 圆的半径减少
+     */
+    private final static int RADIUS_PLUS = 2;
+
+    /**
+     * 圆的半径增加
+     */
+    private final static int RADIUS_REDUCE = 3;
 
     private Context mContext;
 
@@ -56,6 +68,10 @@ public class CircleProgressButton extends View {
      */
     private float mProgressWidth;
 
+    private float mBouncedWidth;
+
+    private float mAnimatedWidth;
+
     /**
      * 文字的颜色
      */
@@ -77,6 +93,16 @@ public class CircleProgressButton extends View {
     private boolean isEndOk;
 
     /**
+     * 按下动画结束标志
+     */
+    private boolean isPressedOk;
+
+    /**
+     * 按下松开动画结束标志
+     */
+    private boolean ifPressedBackOk;
+
+    /**
      * 总共长按的时长
      */
     private float longTouchInterval;
@@ -96,6 +122,9 @@ public class CircleProgressButton extends View {
     private int mRadius;
     private float timeInterval;
     private String mText;
+    private BounceY mBounceY;
+
+    int bouncedTime = 0;
 
     public float getLongTouchInterval() {
         return longTouchInterval;
@@ -151,20 +180,20 @@ public class CircleProgressButton extends View {
         public void handleMessage(Message msg) {
 
             switch (msg.what) {
-                case 0:
+                case PROGRESS_PLUS:
                     isEnd = sweepAngle == 360;
                     if (isEnd) {
                         if (mCircleProcessListener != null) {
                             mCircleProcessListener.onFinished();
                         }
-                        removeMessages(0);
+                        removeMessages(PROGRESS_PLUS);
                     } else {
                         sweepAngle += everyIntervalAngle;
                         invalidate();
                         sendEmptyMessageDelayed(PROGRESS_PLUS, TIME_INTERVAL);
                     }
                     break;
-                case 1:
+                case PROGRESS_REDUCE:
                     isEndOk = sweepAngle == 0;
                     if (!isEndOk) {
                         sweepAngle -= everyIntervalAngle;
@@ -174,7 +203,40 @@ public class CircleProgressButton extends View {
                         if (mCircleProcessListener != null) {
                             mCircleProcessListener.onCancelOk();
                         }
-                        removeMessages(1);
+                        removeMessages(PROGRESS_REDUCE);
+                    }
+
+                    break;
+                case RADIUS_PLUS:
+                    isPressedOk = mBouncedWidth - mAnimatedWidth <= 0;
+                    if (!isPressedOk) {
+                        mAnimatedWidth += 0.5;
+                        invalidate();
+                        sendEmptyMessageDelayed(RADIUS_PLUS, 1);
+                    } else {
+                        removeMessages(RADIUS_PLUS);
+                    }
+
+                    break;
+                case RADIUS_REDUCE:
+//                    bouncedTime += 1;
+//                    float v = mBounceY.calulateY(bouncedTime);
+//                    mAnimatedWidth = v;
+//                    invalidate();
+//                    if (bouncedTime >= mBounceY.getTime1()) {
+//                        removeMessages(RADIUS_REDUCE);
+//                    } else {
+//                        sendEmptyMessageDelayed(RADIUS_REDUCE, 1);
+//                    }
+
+                    ifPressedBackOk = mAnimatedWidth <= 0;
+
+                    if (!ifPressedBackOk) {
+                        mAnimatedWidth -= 0.5;
+                        invalidate();
+                        sendEmptyMessageDelayed(RADIUS_REDUCE, 1);
+                    } else {
+                        removeMessages(RADIUS_REDUCE);
                     }
 
                     break;
@@ -191,6 +253,13 @@ public class CircleProgressButton extends View {
         switch (action) {
             case MotionEvent.ACTION_DOWN:
 
+                // 按下的动画
+
+                if (!ifPressedBackOk) {
+                    mLongPressedHandler.sendEmptyMessage(RADIUS_REDUCE);
+                }
+                mLongPressedHandler.sendEmptyMessage(RADIUS_PLUS);
+
                 if (!isEndOk) {
                     if (mCircleProcessListener != null) {
                         mCircleProcessListener.onReStart();
@@ -203,6 +272,11 @@ public class CircleProgressButton extends View {
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
+
+                if (!isPressedOk) {
+                    mLongPressedHandler.sendEmptyMessage(RADIUS_PLUS);
+                }
+                mLongPressedHandler.sendEmptyMessage(RADIUS_REDUCE);
 
                 if (!isEnd) {
                     if (mCircleProcessListener != null) {
@@ -222,6 +296,10 @@ public class CircleProgressButton extends View {
 
     private void init() {
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        mBouncedWidth = mProgressWidth / 2;
+
+        mBounceY = new BounceY(mBouncedWidth);
     }
 
     @Override
@@ -239,18 +317,18 @@ public class CircleProgressButton extends View {
 
         canvas.translate(mWidth / 2, mHeight / 2);
 
-        //画一个圆
-        mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(mCircleColor);
-        canvas.drawCircle(0, 0, mRadius, mPaint);
-
         //画进度条
         mPaint.setColor(mProgressColor);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(mProgressWidth);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        RectF rectF = new RectF(-mRadius, -mRadius, mRadius, mRadius);
+        RectF rectF = new RectF(-mRadius + mBouncedWidth, -mRadius + mBouncedWidth, mRadius - mBouncedWidth, mRadius - mBouncedWidth);
         canvas.drawArc(rectF, -90, sweepAngle, false, mPaint);
+
+        //画一个圆
+        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setColor(mCircleColor);
+        canvas.drawCircle(0, 0, mRadius - mAnimatedWidth, mPaint);
 
         //画文字
         mPaint.setColor(mTextColor);
