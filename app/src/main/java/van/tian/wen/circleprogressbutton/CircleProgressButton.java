@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 fantianwen <twfan_09@hotmail.com>
- * <p/>
+ * <p>
  * also you can see {@link https://github.com/fantianwen/CircleProgressButton}
  */
 package van.tian.wen.circleprogressbutton;
@@ -254,6 +254,9 @@ public class CircleProgressButton extends View {
             case MotionEvent.ACTION_DOWN:
 
                 // 按下的动画
+                if (isEnd) {
+                    sweepAngle = 0;
+                }
 
                 if (!ifPressedBackOk) {
                     mLongPressedHandler.sendEmptyMessage(RADIUS_REDUCE);
